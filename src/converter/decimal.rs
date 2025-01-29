@@ -23,7 +23,7 @@ impl Converter for Decimal {
             })
             .collect::<Vec<String>>()
             .join(" ");
-
+        
         Binary(binary)
     }
 }
