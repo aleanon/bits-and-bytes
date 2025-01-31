@@ -10,19 +10,18 @@ impl Hex {
 }
 
 impl Converter for Hex {
-    fn to_binary(&self) -> Binary {
-        let binary = self.0.chars()
-            .filter(|&c|!(c == ' '))
-            .collect::<Vec<_>>()
+    fn to_bytes(&self) -> Vec<u8> {
+        self.0.as_bytes()
+            .iter()
+            .filter(|b| !(**b as char).is_ascii_whitespace())
+            .copied()
+            .collect::<Vec<u8>>()
             .chunks(2)
-            .map(|chunk| {
-                let string = chunk.iter().collect::<String>();
-                let hex = u16::from_str_radix(&string, 16).expect("Failed to convert hex to binary");
-                format!("{:08b}", hex)
+            .filter_map(|chunk| {
+                let str = std::str::from_utf8(chunk).ok()?;
+                Some(u8::from_str_radix(str, 16).ok()?)
             })
-            .collect::<Vec<String>>()
-            .join(" ");
-
-        Binary(binary)
+            .collect()
     }
+
 }

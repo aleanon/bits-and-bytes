@@ -4,6 +4,7 @@ use super::Converter;
 pub struct Binary(pub String);
 
 impl Binary {
+
     pub fn new() -> Self {
         Binary(String::new())
     }
@@ -11,14 +12,17 @@ impl Binary {
 
 
 impl Converter for Binary {
-    fn to_binary(&self) -> Binary {
-        let filtered: String  = self.0.chars()
-            .filter(|c| !c.is_ascii_whitespace())
-            .collect();
-        let padding_len = if filtered.len()%8 == 0 {0} else {8 - filtered.len() % 8};
-        let padding = String::from("0").repeat(padding_len);
-        let padded = format!("{}{}", padding, filtered);
-
-        Binary(padded)
+    fn to_bytes(&self) -> Vec<u8> {
+        self.0.as_bytes()
+            .iter()
+            .filter(|b|!(**b as char).is_ascii_whitespace())
+            .copied()
+            .collect::<Vec<u8>>()
+            .chunks(8)
+            .filter_map(|chunk| {
+                let byte = u8::from_str_radix(std::str::from_utf8(chunk).ok()?, 2).ok()?;
+                Some(byte)
+            })
+            .collect()
     }
 }

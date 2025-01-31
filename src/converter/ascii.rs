@@ -1,3 +1,5 @@
+use std::fmt::{self, Display};
+
 use super::{Binary, Converter};
 
 #[derive(Debug)]
@@ -10,15 +12,16 @@ impl Ascii {
 }
 
 
-
-
 impl Converter for Ascii {
-    fn to_binary(&self) -> Binary {
-        let binary = self.0.chars()
-        .map(|char| format!("{:08b}", char as u8))
-        .collect::<Vec<String>>()
-        .join(" ");
+    fn to_bytes(&self) -> Vec<u8> {
+        self.0.as_bytes().to_owned()
+    }
 
-        Binary(binary)
+}
+
+
+impl Display for Ascii {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
     }
 }

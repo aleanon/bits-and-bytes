@@ -3,51 +3,55 @@ use std::fmt::Debug;
 use super::{Ascii, Binary, Decimal, Hex};
 
 pub trait Converter: Sized + Debug {
-    fn to_binary(&self) -> Binary;
+    fn to_bytes(&self) -> Vec<u8>;
+
+    fn to_binary(&self) -> Binary {
+        use std::fmt::Write;
+        let bytes = self.to_bytes();
+        let value = bytes.iter()
+            .fold(String::with_capacity(bytes.len() * 8), |mut acc, byte| {
+                write!(&mut acc, "{:08b}", *byte).ok();
+                acc
+            });
+        
+        Binary(value)
+    }
 
     fn to_ascii(&self) -> Ascii {
-        let binary = self.to_binary().0;
-        let value = Self::from_binary(&binary, |chunk| {
-            let string = chunk.iter().collect::<String>();
-            let ascii = u8::from_str_radix(&string, 2).ok()?;
-            Some(format!("{}", ascii as char))
-        }).join("");     
-
+        use std::fmt::Write;
+        let bytes = self.to_bytes();
+        let value = bytes.iter()
+            .fold(String::with_capacity(bytes.len() * 3), |mut acc, byte| {
+                write!(&mut acc, "{}", *byte as char).ok();
+                acc
+            });
+        
         Ascii(value)
     }
 
-    fn to_hex(&self) -> Hex {
-        let binary = self.to_binary().0;
-        let value = Self::from_binary(&binary, |chunk|{
-            let string = chunk.iter().collect::<String>();
-            let hex = u16::from_str_radix(&string, 2).ok()?;
-            Some(format!("{:02X}", hex))
-        })
-        .join(" ");
 
+    fn to_hex(&self) -> Hex {
+        use std::fmt::Write;
+        let bytes = self.to_bytes();
+        let value = bytes.iter()
+            .fold(String::with_capacity(bytes.len() * 2), |mut acc, byte| {
+                write!(&mut acc, "{:02X} ", byte).ok();
+                acc
+            });
+        
         Hex(value)
     }
 
     fn to_decimal(&self) -> Decimal {
-        let binary = self.to_binary().0;
-        let value = Self::from_binary(&binary, |chunk|{
-            let string = chunk.iter().collect::<String>();
-            let dec = u32::from_str_radix(&string, 2).ok()?;
-            Some(format!("{:03}", dec))
-        })
-       .join(" ");
-    
+        use std::fmt::Write;
+        let bytes = self.to_bytes();
+        let value = bytes.iter()
+            .fold(String::with_capacity(bytes.len() * 3), |mut acc, byte| {
+                write!(&mut acc, "{:03} ", byte).ok();
+                acc
+            });
+        
         Decimal(value)
     }
-
-    fn from_binary<F>(input: &str, from_binary: F) -> Vec<String> 
-        where F: Fn(&[char]) -> Option<String>
-    {
-        input.chars()
-            .filter(|&c| !(c == ' '))
-            .collect::<Vec<_>>()
-            .chunks(8)
-            .filter_map(from_binary)
-            .collect()
-    }
+   
 }

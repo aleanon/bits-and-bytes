@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use super::{Binary, Converter};
 
 #[derive(Debug)]
@@ -11,19 +13,20 @@ impl Decimal {
 
 
 impl Converter for Decimal {
-    fn to_binary(&self) -> Binary {
-        let binary = self.0.chars()
-            .filter(|&c|!(c == ' '))
-            .collect::<Vec<_>>()
+    fn to_bytes(&self) -> Vec<u8> {
+        self.0.as_bytes()
+            .iter()
+            .filter(|b| !(**b as char).is_ascii_whitespace())
+            .copied()
+            .collect::<Vec<u8>>()
             .chunks(3)
             .filter_map(|chunk| {
-                let string = chunk.iter().collect::<String>();
-                let dec = u8::from_str_radix(&string, 10).ok()?;
-                Some(format!("{:08b}", dec))
+                let str = std::str::from_utf8(chunk).ok()?;
+                Some(u8::from_str_radix(str, 10).ok()?)
             })
-            .collect::<Vec<String>>()
-            .join(" ");
-        
-        Binary(binary)
+            .collect()
     }
+
 }
+
+
